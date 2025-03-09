@@ -6,7 +6,7 @@ curl -fsSL https://rpm.nodesource.com/setup_20.x | sudo bash -
 
 sudo dnf install -y nodejs
 
-# Una vez instalado dentro de la carpeta incidencias-proyecto/
+# Una vez instalado
 rm -rf node_modules package-lock.json
 
 npm install
