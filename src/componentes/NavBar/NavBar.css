@@ -1,0 +1,31 @@
+*{
+    margin: 0;
+    padding: 0;
+}
+
+.navbar{
+    display: flex;
+    justify-content: space-between;
+    background: #ffff;
+    padding: 10 px 16px;
+    margin-bottom: 16px;
+}
+
+.logo{
+    color: #4c00b4;
+    font-size: 20px;
+}
+
+.navbar-menu{
+    display: flex;
+    list-style-type: none;
+    gap: 30px;
+    margin: 0;
+    align-items: center;
+}
+
+.navbar-menu li a{
+    text-decoration: none;
+    color: #AB47BC;
+    font-size: 16px;
+}
