@@ -1,8 +1,12 @@
-import React, { useState } from 'react'
-import './LogInSignUp.css'
-import user_icon from '../assets/person.png'
-import email_icon from '../assets/email.png'
-import password_icon from '../assets/password.png'
+import React, { useState } from 'react';
+import './LogInSignUp.css';
+import user_icon from '../assets/person.png';
+import email_icon from '../assets/email.png';
+import password_icon from '../assets/password.png';
+//import {UsuarioService} from '../services/UsuarioService';
+import { test } from '../services/test';
+console.log(test); // Debería imprimir "Hola, esto es una prueba"
+
 
 export const LogInSignUp = ({setUsuario}) => {
 
@@ -11,18 +15,31 @@ export const LogInSignUp = ({setUsuario}) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(false);
+  const [mensaje, setMensaje] = useState("");
 
-  const manejadorBoton = (e) => {
-    e.preventDefault()
+  const manejadorBoton = async (e) => {
+    e.preventDefault();
 
-    if(nombre === "" || password === "" || email === ""){
-        setError(true)
-        return
+    if (nombre === "" || password === "" || email === "") {
+      setError(true);
+      return;
     }
-    setError(false)
+    setError(false);
 
-    setUsuario([nombre])
-  }
+    const usuarioBody = {
+      nombre,
+      email,
+      password,
+    };
+
+    try {
+      const response = await UsuarioService.addUser(usuarioBody);
+      setUsuario([nombre]);
+      setMensaje("Usuario registrado con éxito");
+    } catch (error) {
+      setMensaje("Error al registrar usuario");
+    }
+  };
 
   return (
     <div className='container'>
