@@ -3,96 +3,111 @@ import './LogInSignUp.css';
 import user_icon from '../assets/person.png';
 import email_icon from '../assets/email.png';
 import password_icon from '../assets/password.png';
-//import {UsuarioService} from '../services/UsuarioService';
-import { test } from '../services/test';
-console.log(test); // Debería imprimir "Hola, esto es una prueba"
+import UsuarioService from '../../services/UsuarioService';
 
+export const LogInSignUp = ({ setUsuario }) => {
+    const [action, setAction] = useState("Registrarse");
+    const [username, setusername] = useState("");
+    const [mail, setmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [error, setError] = useState(false);
+    const [mensaje, setMensaje] = useState("");
 
-export const LogInSignUp = ({setUsuario}) => {
+    const manejadorBoton = async (e) => {
+        e.preventDefault();
 
-  const [action, setAction] = useState("Registrarse");
-  const [nombre, setNombre] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState(false);
-  const [mensaje, setMensaje] = useState("");
+        if (username.trim() === "" || password.trim() === "" || mail.trim() === "") {
+            setError(true);
+            setMensaje("Todos los campos son obligatorios");
+            return;
+        }
 
-  const manejadorBoton = async (e) => {
-    e.preventDefault();
+        setError(false);
+        setMensaje("Enviando datos...");
 
-    if (nombre === "" || password === "" || email === "") {
-      setError(true);
-      return;
-    }
-    setError(false);
+        const usuarioBody = { username, mail, password };
+        console.log("Datos enviados al backend:", usuarioBody); // Verificación
 
-    const usuarioBody = {
-      nombre,
-      email,
-      password,
+        try {
+            const response = await UsuarioService.addUser(usuarioBody);
+            console.log("Respuesta del backend:", response);
+
+            if (response) {
+                setUsuario((prevUsuarios) => [...prevUsuarios, { username, mail }]);
+                setMensaje("Usuario registrado con éxito");
+            } else {
+                setMensaje("No se pudo registrar el usuario");
+            }
+        } catch (error) {
+            console.error("Error en la solicitud:", error);
+            setMensaje(error.response?.data?.message || "Error al registrar usuario");
+        }
     };
 
-    try {
-      const response = await UsuarioService.addUser(usuarioBody);
-      setUsuario([nombre]);
-      setMensaje("Usuario registrado con éxito");
-    } catch (error) {
-      setMensaje("Error al registrar usuario");
-    }
-  };
+    return (
+        <div className='container'>
+            <div className="header">
+                <div className="text">{action}</div>
+                <div className="underline"></div>
+            </div>
+            <form className="inputs" onSubmit={manejadorBoton}>
+                {action === "Iniciar sesion" ? null : (
+                    <div className="input">
+                        <img src={user_icon} alt="" />
+                        <input
+                            type="text"
+                            placeholder='username'
+                            value={username}
+                            onChange={e => setusername(e.target.value)}
+                        />
+                    </div>
+                )}
 
-  return (
-    <div className='container'>
-        <div className="header">
-            <div className="text">{action}</div>
-            <div className="underline"></div>
+                <div className="input">
+                    <img src={email_icon} alt="" />
+                    <input
+                        type="mail"
+                        placeholder='e-mail'
+                        value={mail}
+                        onChange={e => setmail(e.target.value)}
+                    />
+                </div>
+
+                <div className="input">
+                    <img src={password_icon} alt="" />
+                    <input
+                        type="password"
+                        placeholder='Contraseña'
+                        value={password}
+                        onChange={e => setPassword(e.target.value)}
+                    />
+                </div>
+
+                <div className="submit-container">
+                    <button
+                        type="submit"
+                        className="submit"
+                    >
+                        {action}
+                    </button>
+                    <button
+                        type="button"
+                        className="submit gray"
+                        onClick={() => setAction(action === "Registrarse" ? "Iniciar sesion" : "Registrarse")}
+                    >
+                        {action === "Registrarse" ? "Iniciar sesión" : "Registrate"}
+                    </button>
+                </div>
+            </form>
+
+            {error && <p style={{ color: 'red' }}>{mensaje}</p>}
+            {!error && mensaje && <p style={{ color: 'green' }}>{mensaje}</p>}
+
+            {action === "Registrarse" ? null : (
+                <div className="olvido-contrasenia">
+                    Olvidaste tu contraseña? <span>Click Aquí!</span>
+                </div>
+            )}
         </div>
-        <form className="inputs" onSubmit={manejadorBoton}>
-            {/**input para el nombre de usuario. Si estamos en Iniciar sesion ya no aparece el input del nombre sino pues si XD*/}
-            {action==="Iniciar sesion"?<div></div>:
-            <div className="input">
-                <img src={user_icon} alt="" />
-                <input 
-                    type="text" 
-                    placeholder='Nombre'
-                    value = {nombre}
-                    onChange={e => setNombre(e.target.value)} 
-                />
-            </div>}
-            
-            {/**input para el email */}
-            <div className="input">
-                <img src={email_icon} alt="" />
-                <input 
-                    type="email" 
-                    placeholder='e-mail'
-                    value = {email}
-                    onChange={e => setEmail(e.target.value)}  
-                />
-            </div>
-            {/**input para el password */}
-            <div className="input">
-                <img src={password_icon} alt="" />
-                <input 
-                    type="password" 
-                    placeholder='Contraseña'
-                    value = {password}
-                    onChange={e => setPassword(e.target.value)}  
-                />
-            </div>
-            <div className="submit-container">
-                <button className={action==="Iniciar sesion"?"submit gray":"submit"} onClick={()=>{setAction("Registrarse")}}>Registrate</button>
-                <button className={action==="Registrarse"?"submit gray":"submit"} onClick={()=>{setAction("Iniciar sesion")}}>Iniciar sesión</button>
-            </div>
-        </form>
-        {error && <p>Todos los campos son necesarios</p>}
-         
-        {action==="Registrarse"?<div></div>:
-        <div className="olvido-contrasenia">Olvidaste tu contraseña? <span>Click Aquí!</span></div>}
-        
-        
-        
-    </div>
-    
-  )
-}
+    );
+};
