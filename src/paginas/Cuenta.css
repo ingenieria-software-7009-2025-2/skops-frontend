@@ -1,0 +1,35 @@
+.cuenta-container {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 30px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  }
+  
+  .user-info {
+    margin: 25px 0;
+    padding: 20px;
+    background: #f8f8f8;
+    border-radius: 8px;
+  }
+  
+  .user-info p {
+    margin: 15px 0;
+    font-size: 16px;
+  }
+  
+  .logout-button {
+    background: #4c00b4;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 25px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  
+  .logout-button:hover {
+    background: #3a008c;
+  }

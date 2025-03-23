@@ -1,28 +1,64 @@
-import React, { useState } from 'react'
-import './LogInSignUp.css'
-import user_icon from '../assets/person.png'
-import email_icon from '../assets/email.png'
-import password_icon from '../assets/password.png'
+import axios from 'axios';
+import React, { useState } from 'react';
+import './LogInSignUp.css';
+import user_icon from '../assets/person.png';
+import email_icon from '../assets/email.png';
+import password_icon from '../assets/password.png';
 
-export const LogInSignUp = ({setUsuario}) => {
-
+export const LogInSignUp = ({ setUsuario }) => {
   const [action, setAction] = useState("Registrarse");
   const [nombre, setNombre] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState(false);
+  const [error, setError] = useState("");
+
+  const API_URL = "http://localhost:8080"; // Cambiar por tu URL
+
+  const handleRegistro = async (e) => {
+    e.preventDefault();
+    
+    if (!nombre || !email || !password) {
+      setError("Todos los campos son necesarios");
+      return;
+    }
+
+    try {
+      const response = await axios.post(`${API_URL}/v1/users`, {
+        username: nombre,
+        mail: email,
+        password: password
+      });
+      
+      // Guardar token y actualizar estado
+      localStorage.setItem('token', response.data.token);
+      setUsuario([nombre]);
+      
+    } catch (err) {
+      setError(err.response?.data?.message || "Error en el registro");
+    }
+  };
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    
+    try {
+      const response = await axios.post(`${API_URL}/v1/users/login`, {
+        mail: email,
+        password: password
+      });
+      
+      localStorage.setItem('token', response.data.token);
+      setUsuario([response.data.username]);
+      
+    } catch (err) {
+      setError(err.response?.data?.message || "Credenciales inválidas");
+    }
+  };
 
   const manejadorBoton = (e) => {
-    e.preventDefault()
+    action === "Registrarse" ? handleRegistro(e) : handleLogin(e);
+  };
 
-    if(nombre === "" || password === "" || email === ""){
-        setError(true)
-        return
-    }
-    setError(false)
-
-    setUsuario([nombre])
-  }
 
   return (
     <div className='container'>
