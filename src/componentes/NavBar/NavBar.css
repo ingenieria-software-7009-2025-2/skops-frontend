@@ -1,22 +1,24 @@
-*{
+/* Estilos generales */
+* {
     margin: 0;
     padding: 0;
 }
 
-.navbar{
+.navbar {
     display: flex;
     justify-content: space-between;
     background: #ffff;
-    padding: 10 px 16px;
+    padding: 10px 16px;
     margin-bottom: 16px;
+    position: relative; /* Asegura que el dropdown se posicione correctamente */
 }
 
-.logo{
-    color: #4c00b4;
+.logo {
+    color: #741eec;
     font-size: 20px;
 }
 
-.navbar-menu{
+.navbar-menu {
     display: flex;
     list-style-type: none;
     gap: 30px;
@@ -24,8 +26,60 @@
     align-items: center;
 }
 
-.navbar-menu li a{
+.navbar-menu li a {
     text-decoration: none;
-    color: #AB47BC;
+    color: #d900ff;
+    font-size: 16px;
+}
+
+/* Estilos para el menú desplegable */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: white;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+    padding: 12px 16px;
+    z-index: 1;
+    border-radius: 4px;
+    right: 0;
+    /* Ajusta el color del texto para que coincida con el tema */
+    color: #d900ff;
+}
+
+.dropdown-content.show {
+    display: block;
+}
+
+.dropdown-item {
+    padding: 8px 0;
+    color: inherit; /* Hereda el color del navbar-menu */
+    text-decoration: none;
+    display: block;
+    cursor: pointer;
+}
+
+.dropdown-item:hover {
+    background-color: #f1f1f1;
+}
+
+.logout-item {
+    margin-top: 8px;
+    color: red; /* Puedes cambiar esto a un color que combine con tu tema */
+    font-weight: bold;
+}
+
+/* Asegura que el botón "Cuenta" se vea como un enlace */
+.dropbtn {
+    background-color: inherit;
+    color: inherit;
+    border: none;
+    padding: 0;
+    cursor: pointer;
     font-size: 16px;
 }
