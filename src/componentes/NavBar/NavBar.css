@@ -7,12 +7,12 @@
     display: flex;
     justify-content: space-between;
     background: #ffff;
-    padding: 10px 16px;
+    padding: 10 px 16px;
     margin-bottom: 16px;
 }
 
 .logo{
-    color: #741eec;
+    color: #4c00b4;
     font-size: 20px;
 }
 
@@ -26,6 +26,6 @@
 
 .navbar-menu li a{
     text-decoration: none;
-    color: #d900ff;
+    color: #AB47BC;
     font-size: 16px;
 }

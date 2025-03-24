@@ -6,17 +6,15 @@ import PaginaInicio from './componentes/PaginaInicio/PaginaInicio';
 import { useState } from 'react';
 
 function App() {
-  const [usuario, setUsuario] = useState(() => {
-    // Recuperar estado de sesión al cargar
-    const token = localStorage.getItem('token');
-    return token ? ['authenticated'] : [];
-  });
 
+  const [usuario, setUsuario] = useState([])
   return (
     <div>
-      {!usuario.length 
-        ? <LogInSignUp setUsuario={setUsuario}/>
-        : <PaginaInicio />
+      
+      {
+        !usuario.length > 0
+          ? <LogInSignUp setUsuario={setUsuario}/>
+          : <PaginaInicio />
       }
     </div>
   );
