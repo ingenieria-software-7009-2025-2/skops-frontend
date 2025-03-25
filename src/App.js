@@ -4,6 +4,8 @@ import { LogInSignUp } from './componentes/LogInSignUp/LogInSignUp';
 import NavBar from './componentes/NavBar/NavBar';
 import PaginaInicio from './componentes/PaginaInicio/PaginaInicio';
 import { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import  ActualizarDatos  from './componentes/ActualizarDatos/ActualizarDatos';
 
 function App() {
   const [usuario, setUsuario] = useState(() => {
