@@ -1,9 +1,9 @@
-import axios from 'axios';
 import React, { useState } from 'react';
 import './LogInSignUp.css';
 import user_icon from '../assets/person.png';
 import email_icon from '../assets/email.png';
 import password_icon from '../assets/password.png';
+import api from '../../api';
 
 export const LogInSignUp = ({ setUsuario }) => {
   const [action, setAction] = useState("Registrarse");
@@ -11,8 +11,6 @@ export const LogInSignUp = ({ setUsuario }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-
-  const API_URL = "http://localhost:8080"; // Cambiar por tu URL
 
   const handleRegistro = async (e) => {
     e.preventDefault();
@@ -23,14 +21,17 @@ export const LogInSignUp = ({ setUsuario }) => {
     }
 
     try {
-      const response = await axios.post(`${API_URL}/v1/users`, {
+      const response = await api.post('/v1/users', {
         username: nombre,
         mail: email,
         password: password
       });
-      
-      // Guardar token y actualizar estado
-      localStorage.setItem('token', response.data.token);
+      console.log("Respuesta de registro:", response.data);
+      if (response.data.token) {
+        localStorage.setItem('token', response.data.token);
+      } else {
+        console.warn("No se recibió token en la respuesta del registro");
+      }
       setUsuario([nombre]);
       
     } catch (err) {
@@ -42,12 +43,16 @@ export const LogInSignUp = ({ setUsuario }) => {
     e.preventDefault();
     
     try {
-      const response = await axios.post(`${API_URL}/v1/users/login`, {
+      const response = await api.post('/v1/users/login', {
         mail: email,
         password: password
       });
-      
-      localStorage.setItem('token', response.data.token);
+      console.log("Respuesta de login:", response.data);
+      if (response.data.token) {
+        localStorage.setItem('token', response.data.token);
+      } else {
+        console.warn("No se recibió token en la respuesta del login");
+      }
       setUsuario([response.data.username]);
       
     } catch (err) {
@@ -55,63 +60,77 @@ export const LogInSignUp = ({ setUsuario }) => {
     }
   };
 
+  // Manejador que se ejecuta al enviar el formulario.
+  // Usa el valor de 'action' para decidir qué operación ejecutar.
   const manejadorBoton = (e) => {
-    action === "Registrarse" ? handleRegistro(e) : handleLogin(e);
+    e.preventDefault();
+    if (action === "Registrarse") {
+      handleRegistro(e);
+    } else {
+      handleLogin(e);
+    }
   };
-
 
   return (
     <div className='container'>
-        <div className="header">
-            <div className="text">{action}</div>
-            <div className="underline"></div>
+      <div className="header">
+        <div className="text">{action}</div>
+        <div className="underline"></div>
+      </div>
+      <form className="inputs" onSubmit={manejadorBoton}>
+        {action === "Iniciar sesion" ? null : (
+          <div className="input">
+            <img src={user_icon} alt="user icon" />
+            <input 
+              type="text" 
+              placeholder='Nombre'
+              value={nombre}
+              onChange={e => setNombre(e.target.value)} 
+            />
+          </div>
+        )}
+        <div className="input">
+          <img src={email_icon} alt="email icon" />
+          <input 
+            type="email" 
+            placeholder='e-mail'
+            value={email}
+            onChange={e => setEmail(e.target.value)}  
+          />
         </div>
-        <form className="inputs" onSubmit={manejadorBoton}>
-            {/**input para el nombre de usuario. Si estamos en Iniciar sesion ya no aparece el input del nombre sino pues si XD*/}
-            {action==="Iniciar sesion"?<div></div>:
-            <div className="input">
-                <img src={user_icon} alt="" />
-                <input 
-                    type="text" 
-                    placeholder='Nombre'
-                    value = {nombre}
-                    onChange={e => setNombre(e.target.value)} 
-                />
-            </div>}
-            
-            {/**input para el email */}
-            <div className="input">
-                <img src={email_icon} alt="" />
-                <input 
-                    type="email" 
-                    placeholder='e-mail'
-                    value = {email}
-                    onChange={e => setEmail(e.target.value)}  
-                />
-            </div>
-            {/**input para el password */}
-            <div className="input">
-                <img src={password_icon} alt="" />
-                <input 
-                    type="password" 
-                    placeholder='Contraseña'
-                    value = {password}
-                    onChange={e => setPassword(e.target.value)}  
-                />
-            </div>
-            <div className="submit-container">
-                <button className={action==="Iniciar sesion"?"submit gray":"submit"} onClick={()=>{setAction("Registrarse")}}>Registrate</button>
-                <button className={action==="Registrarse"?"submit gray":"submit"} onClick={()=>{setAction("Iniciar sesion")}}>Iniciar sesión</button>
-            </div>
-        </form>
-        {error && <p>Todos los campos son necesarios</p>}
-         
-        {action==="Registrarse"?<div></div>:
-        <div className="olvido-contrasenia">Olvidaste tu contraseña? <span>Click Aquí!</span></div>}
-        
-        
-        
+        <div className="input">
+          <img src={password_icon} alt="password icon" />
+          <input 
+            type="password" 
+            placeholder='Contraseña'
+            value={password}
+            onChange={e => setPassword(e.target.value)}  
+          />
+        </div>
+        <div className="submit-container">
+          <button 
+            type="submit"
+            className={action === "Iniciar sesion" ? "submit gray" : "submit"}
+            onClick={() => setAction("Registrarse")}
+          >
+            Registrate
+          </button>
+          <button 
+            type="submit"
+            className={action === "Registrarse" ? "submit gray" : "submit"}
+            onClick={() => setAction("Iniciar sesion")}
+          >
+            Iniciar sesión
+          </button>
+        </div>
+      </form>
+      {error && <p className="error">{error}</p>}
+      
+      {action === "Registrarse" ? null : (
+        <div className="olvido-contrasenia">
+          Olvidaste tu contraseña? <span>Click Aquí!</span>
+        </div>
+      )}
     </div>
-    
-  )
-}
+  );
+};

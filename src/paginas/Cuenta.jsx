@@ -24,9 +24,17 @@ function Cuenta() {
   }, [navigate]);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    navigate('/');
-  };
+    api.post('/v1/users/logout')
+        .then(() => {
+            localStorage.removeItem('token');
+            navigate('/');
+        })
+        .catch((error) => {
+            console.error('Error al cerrar sesión:', error);
+            localStorage.removeItem('token');
+            navigate('/');
+        });
+};
 
   return (
     <div>

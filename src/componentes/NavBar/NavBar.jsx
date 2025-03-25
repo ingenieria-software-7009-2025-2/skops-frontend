@@ -1,14 +1,23 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom'; // Importamos useNavigate
+import { Link, useNavigate } from 'react-router-dom'; 
 import './NavBar.css';
+import api from '../../api';
 
 function NavBar() {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const navigate = useNavigate();
 
     const handleLogout = () => {
-        localStorage.removeItem('token');
-        navigate('/');
+        api.post('/v1/users/logout')
+            .then(() => {
+                localStorage.removeItem('token');
+                navigate('/');
+            })
+            .catch((error) => {
+                console.error('Error al cerrar sesión:', error);
+                localStorage.removeItem('token');
+                navigate('/');
+            });
     };
 
     return (
