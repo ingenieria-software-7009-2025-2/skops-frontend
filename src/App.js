@@ -1,11 +1,10 @@
-import logo from './logo.svg';
-import './App.css';
-import { LogInSignUp } from './componentes/LogInSignUp/LogInSignUp';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import NavBar from './componentes/NavBar/NavBar';
 import PaginaInicio from './componentes/PaginaInicio/PaginaInicio';
+import { LogInSignUp } from './componentes/LogInSignUp/LogInSignUp';
+import Cuenta from './paginas/Cuenta';
+import ActualizarDatos from './componentes/ActualizarDatos/ActualizarDatos';
 import { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import  ActualizarDatos  from './componentes/ActualizarDatos/ActualizarDatos';
 
 function App() {
   const [usuario, setUsuario] = useState(() => {
@@ -16,7 +15,7 @@ function App() {
 
   return (
     <div>
-      {!usuario.length 
+      {!usuario.length
         ? <LogInSignUp setUsuario={setUsuario}/>
         : <PaginaInicio />
       }

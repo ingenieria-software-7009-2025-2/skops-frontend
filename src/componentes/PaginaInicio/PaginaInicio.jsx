@@ -3,7 +3,7 @@ import NavBar from '../NavBar/NavBar'
 
 function PaginaInicio() {
   return (
-    
+
     <div>
         <NavBar></NavBar>
         PaginaInicio
