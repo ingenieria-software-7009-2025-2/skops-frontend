@@ -5,10 +5,10 @@ import App from './App';
 import{
     createBrowserRouter,
     RouterProvider,
-    Route,
 } from "react-router-dom";
 import Cuenta from './paginas/Cuenta';
 import Ayuda from './paginas/Ayuda';
+import ActualizarDatos from './componentes/ActualizarDatos/ActualizarDatos';
 
 const router = createBrowserRouter([
     {
@@ -19,6 +19,11 @@ const router = createBrowserRouter([
     {
         path: "cuenta",
         element: <Cuenta/>
+    },
+
+    {
+        path: "/actualizar-datos",
+        element: <ActualizarDatos />,
     },
 
     {
