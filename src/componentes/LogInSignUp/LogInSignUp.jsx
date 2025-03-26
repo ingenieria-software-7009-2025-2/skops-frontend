@@ -26,13 +26,14 @@ export const LogInSignUp = ({ setUsuario }) => {
         mail: email,
         password: password
       });
-      console.log("Respuesta de registro:", response.data);
+      
       if (response.data.token) {
         localStorage.setItem('token', response.data.token);
+        setUsuario([nombre]);
       } else {
         console.warn("No se recibió token en la respuesta del registro");
+        setError("Error en el proceso de registro");
       }
-      setUsuario([nombre]);
       
     } catch (err) {
       setError(err.response?.data?.message || "Error en el registro");
@@ -42,28 +43,31 @@ export const LogInSignUp = ({ setUsuario }) => {
   const handleLogin = async (e) => {
     e.preventDefault();
     
+    if (!email || !password) {
+      setError("Todos los campos son necesarios");
+      return;
+    }
+
     try {
       const response = await api.post('/v1/users/login', {
         mail: email,
         password: password
       });
-      console.log("Respuesta de login:", response.data);
+      
       if (response.data.token) {
         localStorage.setItem('token', response.data.token);
+        setUsuario([response.data.username]);
       } else {
         console.warn("No se recibió token en la respuesta del login");
+        setError("Error en el proceso de autenticación");
       }
-      setUsuario([response.data.username]);
       
     } catch (err) {
       setError(err.response?.data?.message || "Credenciales inválidas");
     }
   };
 
-  // Manejador que se ejecuta al enviar el formulario.
-  // Usa el valor de 'action' para decidir qué operación ejecutar.
   const manejadorBoton = (e) => {
-    e.preventDefault();
     if (action === "Registrarse") {
       handleRegistro(e);
     } else {
@@ -109,28 +113,34 @@ export const LogInSignUp = ({ setUsuario }) => {
         </div>
         <div className="submit-container">
           <button 
-            type="submit"
+            type={action === "Registrarse" ? "submit" : "button"}
             className={action === "Iniciar sesion" ? "submit gray" : "submit"}
-            onClick={() => setAction("Registrarse")}
+            onClick={() => {
+              if (action !== "Registrarse") {
+                setAction("Registrarse");
+                setNombre("");
+                setError("");
+              }
+            }}
           >
             Registrate
           </button>
           <button 
-            type="submit"
+            type={action === "Iniciar sesion" ? "submit" : "button"}
             className={action === "Registrarse" ? "submit gray" : "submit"}
-            onClick={() => setAction("Iniciar sesion")}
+            onClick={() => {
+              if (action !== "Iniciar sesion") {
+                setAction("Iniciar sesion");
+                setNombre("");
+                setError("");
+              }
+            }}
           >
             Iniciar sesión
           </button>
         </div>
       </form>
       {error && <p className="error">{error}</p>}
-      
-      {action === "Registrarse" ? null : (
-        <div className="olvido-contrasenia">
-          Olvidaste tu contraseña? <span>Click Aquí!</span>
-        </div>
-      )}
     </div>
   );
 };

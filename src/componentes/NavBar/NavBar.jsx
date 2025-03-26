@@ -1,24 +1,10 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom'; 
+import { Link} from 'react-router-dom'; 
 import './NavBar.css';
-import api from '../../api';
 
 function NavBar() {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const navigate = useNavigate();
 
-    const handleLogout = () => {
-        api.post('/v1/users/logout')
-            .then(() => {
-                localStorage.removeItem('token');
-                navigate('/');
-            })
-            .catch((error) => {
-                console.error('Error al cerrar sesión:', error);
-                localStorage.removeItem('token');
-                navigate('/');
-            });
-    };
 
     return (
         <div className="navbar">
@@ -26,7 +12,6 @@ function NavBar() {
             <ul className="navbar-menu">
                 <li><Link to="/">Inicio</Link></li>
 
-                {/* Menú desplegable para "Cuenta" */}
                 <li className="dropdown">
                     <button
                         className="dropbtn"
@@ -43,15 +28,6 @@ function NavBar() {
                         <Link to="/actualizar-datos" className="dropdown-item">
                             Actualizar Datos
                         </Link>
-                        <div
-                            className="dropdown-item logout-item"
-                            onClick={(e) => {
-                                e.preventDefault();
-                                handleLogout();
-                            }}
-                        >
-                            Cerrar Sesión
-                        </div>
                     </div>
                 </li>
 

@@ -46,7 +46,6 @@ function Cuenta() {
               <div className="user-info">
                 <p><strong>Nombre de usuario:</strong> {userData.username}</p>
                 <p><strong>Email:</strong> {userData.mail}</p>
-                {/* Agrega más campos según respuesta de tu API */}
               </div>
             )}
 

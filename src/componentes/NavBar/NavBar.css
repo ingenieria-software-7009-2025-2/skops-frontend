@@ -1,4 +1,3 @@
-/* Estilos generales */
 * {
     margin: 0;
     padding: 0;
@@ -10,7 +9,7 @@
     background: #ffff;
     padding: 10px 16px;
     margin-bottom: 16px;
-    position: relative; /* Asegura que el dropdown se posicione correctamente */
+    position: relative; 
 }
 
 .logo {
@@ -32,7 +31,6 @@
     font-size: 16px;
 }
 
-/* Estilos para el menú desplegable */
 .dropdown {
     position: relative;
     display: inline-block;
@@ -48,7 +46,6 @@
     z-index: 1;
     border-radius: 4px;
     right: 0;
-    /* Ajusta el color del texto para que coincida con el tema */
     color: #d900ff;
 }
 
@@ -58,7 +55,7 @@
 
 .dropdown-item {
     padding: 8px 0;
-    color: inherit; /* Hereda el color del navbar-menu */
+    color: inherit; 
     text-decoration: none;
     display: block;
     cursor: pointer;
@@ -70,11 +67,10 @@
 
 .logout-item {
     margin-top: 8px;
-    color: red; /* Puedes cambiar esto a un color que combine con tu tema */
+    color: red; 
     font-weight: bold;
 }
 
-/* Asegura que el botón "Cuenta" se vea como un enlace */
 .dropbtn {
     background-color: inherit;
     color: inherit;
