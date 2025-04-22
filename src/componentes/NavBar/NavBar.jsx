@@ -31,7 +31,7 @@ function NavBar() {
                     </div>
                 </li>
 
-                <li><Link to="/ayuda">Ayuda</Link></li>
+                <li><Link to="/ayuda">Subir Incidente</Link></li>
             </ul>
         </div>
     );
