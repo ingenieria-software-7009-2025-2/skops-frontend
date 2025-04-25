@@ -4,46 +4,55 @@ import user_icon from '../assets/person.png';
 import email_icon from '../assets/email.png';
 import password_icon from '../assets/password.png';
 import api from '../../api';
+import axios from 'axios';
 
 export const LogInSignUp = ({ setUsuario }) => {
-  const [action, setAction] = useState("Registrarse");
-  const [nombre, setNombre] = useState("");
-  const [email, setEmail] = useState("");
+  const [action, setAction]   = useState("Registrarse");
+  const [nombre, setNombre]   = useState("");
+  const [municipio, setMunicipio] = useState("");
+  const [email, setEmail]     = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [error, setError]     = useState("");
 
-  const handleRegistro = async (e) => {
-    e.preventDefault();
-    
-    if (!nombre || !email || !password) {
+  const handleRegistro = async () => {
+    // Validación: no permitir espacios en blanco
+    if (!nombre.trim() || !municipio.trim() || !email.trim() || !password.trim()) {
       setError("Todos los campos son necesarios");
       return;
     }
 
     try {
-      const response = await api.post('/v1/users', {
+      // Usamos axios directamente para no enviar el token
+      const response = await axios.post(`${api.defaults.baseURL}/v1/users`, {
         username: nombre,
+        municipio: municipio,
         mail: email,
         password: password
       });
-      
-      if (response.data.token) {
-        localStorage.setItem('token', response.data.token);
-        setUsuario([nombre]);
+
+      // Si el servidor devuelve código 201 o 200, consideramos registro exitoso
+      if (response.status === 201 || response.status === 200) {
+        // Limpiar campos
+        setNombre("");
+        setMunicipio("");
+        setEmail("");
+        setPassword("");
+        setError("");
+
+        // Cambiar al modo login para que el usuario inicie sesión
+        setAction("Iniciar sesión");
       } else {
-        console.warn("No se recibió token en la respuesta del registro");
         setError("Error en el proceso de registro");
       }
-      
+
     } catch (err) {
-      setError(err.response?.data?.message || "Error en el registro");
+      // Capturamos error del servidor
+      setError(err.response?.data?.message || "Error interno al registrar");
     }
   };
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    
-    if (!email || !password) {
+  const handleLogin = async () => {
+    if (!email.trim() || !password.trim()) {
       setError("Todos los campos son necesarios");
       return;
     }
@@ -53,25 +62,30 @@ export const LogInSignUp = ({ setUsuario }) => {
         mail: email,
         password: password
       });
-      
+
       if (response.data.token) {
         localStorage.setItem('token', response.data.token);
         setUsuario([response.data.username]);
+        // Limpiar campos tras login exitoso
+        setEmail("");
+        setPassword("");
+        setError("");
       } else {
-        console.warn("No se recibió token en la respuesta del login");
         setError("Error en el proceso de autenticación");
       }
-      
+
     } catch (err) {
       setError(err.response?.data?.message || "Credenciales inválidas");
     }
   };
 
   const manejadorBoton = (e) => {
+    e.preventDefault();
+    setError("");
     if (action === "Registrarse") {
-      handleRegistro(e);
+      handleRegistro();
     } else {
-      handleLogin(e);
+      handleLogin();
     }
   };
 
@@ -81,65 +95,80 @@ export const LogInSignUp = ({ setUsuario }) => {
         <div className="text">{action}</div>
         <div className="underline"></div>
       </div>
+
+      <div className="mode-switch">
+        <button
+          type="button"
+          className={action === "Registrarse" ? "active" : ""}
+          onClick={() => {
+            setAction("Registrarse");
+            setError("");
+          }}
+        >
+          Registrate
+        </button>
+        <button
+          type="button"
+          className={action === "Iniciar sesión" ? "active" : ""}
+          onClick={() => {
+            setAction("Iniciar sesión");
+            setError("");
+          }}
+        >
+          Iniciar sesión
+        </button>
+      </div>
+
       <form className="inputs" onSubmit={manejadorBoton}>
-        {action === "Iniciar sesion" ? null : (
-          <div className="input">
-            <img src={user_icon} alt="user icon" />
-            <input 
-              type="text" 
-              placeholder='Nombre'
-              value={nombre}
-              onChange={e => setNombre(e.target.value)} 
-            />
-          </div>
+        {action === "Iniciar sesión" ? null : (
+          <>
+            <div className="input">
+              <img src={user_icon} alt="user icon" />
+              <input
+                type="text"
+                placeholder='Nombre'
+                value={nombre}
+                onChange={e => setNombre(e.target.value)}
+              />
+            </div>
+            <div className="input">
+              <img src={user_icon} alt="municipio icon" />
+              <input
+                type="text"
+                placeholder='Municipio'
+                value={municipio}
+                onChange={e => setMunicipio(e.target.value)}
+              />
+            </div>
+          </>
         )}
+
         <div className="input">
           <img src={email_icon} alt="email icon" />
-          <input 
-            type="email" 
+          <input
+            type="email"
             placeholder='e-mail'
             value={email}
-            onChange={e => setEmail(e.target.value)}  
+            onChange={e => setEmail(e.target.value)}
           />
         </div>
         <div className="input">
           <img src={password_icon} alt="password icon" />
-          <input 
-            type="password" 
+          <input
+            type="password"
             placeholder='Contraseña'
             value={password}
-            onChange={e => setPassword(e.target.value)}  
+            onChange={e => setPassword(e.target.value)}
           />
         </div>
+
         <div className="submit-container">
-          <button 
-            type={action === "Registrarse" ? "submit" : "button"}
-            className={action === "Iniciar sesion" ? "submit gray" : "submit"}
-            onClick={() => {
-              if (action !== "Registrarse") {
-                setAction("Registrarse");
-                setNombre("");
-                setError("");
-              }
-            }}
-          >
-            Registrate
-          </button>
-          <button 
-            type={action === "Iniciar sesion" ? "submit" : "button"}
-            className={action === "Registrarse" ? "submit gray" : "submit"}
-            onClick={() => {
-              if (action !== "Iniciar sesion") {
-                setAction("Iniciar sesion");
-                setNombre("");
-                setError("");
-              }
-            }}
-          >
-            Iniciar sesión
+          <button type="submit" className="submit">
+            {action}
           </button>
         </div>
       </form>
+
       {error && <p className="error">{error}</p>}
     </div>
   );
