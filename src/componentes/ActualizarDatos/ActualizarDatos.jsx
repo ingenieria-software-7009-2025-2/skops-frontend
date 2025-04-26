@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavBar from '../NavBar/NavBar';
-import api from '../../api';
+import api from '../..//api';
 import './ActualizarDatos.css';
 
 function ActualizarDatos() {
@@ -9,24 +9,21 @@ function ActualizarDatos() {
     username: '',
     mail: '',
     password: '',
+    municipio: '',
   });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isFormValid, setIsFormValid] = useState(false);
   const navigate = useNavigate();
 
-
+  // Validar formulario
   useEffect(() => {
-    const validateForm = () => {
-      const requiredFields = ['username', 'mail'];
-      const isValid = requiredFields.every(field => userData[field].trim() !== '');
-      setIsFormValid(isValid);
-    };
-    
-    validateForm();
+    const requiredFields = ['username', 'mail'];
+    const isValid = requiredFields.every(field => userData[field].trim() !== '');
+    setIsFormValid(isValid);
   }, [userData]);
 
-
+  // Obtener datos actuales del usuario
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -34,9 +31,10 @@ function ActualizarDatos() {
         setUserData({
           username: response.data.username,
           mail: response.data.mail,
-          password: "", 
+          password: '',
+          municipio: response.data.municipio || '',
         });
-      } catch (error) {
+      } catch (err) {
         localStorage.removeItem('token');
         navigate('/');
       }
@@ -44,16 +42,15 @@ function ActualizarDatos() {
     fetchUserData();
   }, [navigate]);
 
+  // Manejo de cambios en inputs
   const handleChange = (e) => {
-    setUserData({
-      ...userData,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
+    setUserData(prev => ({ ...prev, [name]: value }));
   };
 
+  // Envío del formulario
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
     if (!isFormValid) {
       setError('Por favor completa todos los campos obligatorios');
       setSuccess('');
@@ -64,21 +61,22 @@ function ActualizarDatos() {
       const dataToSend = {
         username: userData.username.trim(),
         mail: userData.mail.trim(),
+        municipio: userData.municipio.trim(),
         ...(userData.password.trim() !== '' && { password: userData.password.trim() })
       };
 
       await api.put('/v1/users/me', dataToSend);
       setSuccess('Datos actualizados correctamente');
       setError('');
-      setUserData(prev => ({ ...prev, password: '' })); 
-    } catch (error) {
-      setError(error.response?.data?.message || 'Error al actualizar los datos');
+      setUserData(prev => ({ ...prev, password: '' }));
+    } catch (err) {
+      setError(err.response?.data?.message || 'Error al actualizar los datos');
       setSuccess('');
     }
   };
 
   return (
-    <div>       
+    <div>
       <NavBar />
       <div className="update-container">
         <h2>Actualizar Datos</h2>
@@ -95,6 +93,7 @@ function ActualizarDatos() {
               required
             />
           </div>
+
           <div className="input-group">
             <label>Email:</label>
             <input
@@ -105,18 +104,30 @@ function ActualizarDatos() {
               required
             />
           </div>
+
+          <div className="input-group">
+            <label>Municipio:</label>
+            <input
+              type="text"
+              name="municipio"
+              value={userData.municipio}
+              onChange={handleChange}
+            />
+          </div>
+
           <div className="input-group">
             <label>Contraseña:</label>
             <input
-              type="text"  
+              type="password"
               name="password"
               value={userData.password}
               onChange={handleChange}
               placeholder="Dejar vacío para mantener la actual"
             />
           </div>
-          <button 
-            type="submit" 
+
+          <button
+            type="submit"
             className="submit-button"
             disabled={!isFormValid}
           >
