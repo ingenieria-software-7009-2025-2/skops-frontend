@@ -1,4 +1,5 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import NavBar from '../NavBar/NavBar';
 import './PaginaInicio.css'; 
 import api from '../../api'; 
@@ -11,12 +12,14 @@ function PaginaInicio() {
   const [error, setError] = useState(null);
   const [searchPerformed, setSearchPerformed] = useState(false);
   const [expandedItems, setExpandedItems] = useState({});
-
-  // Estados para actualización
   const [updatingItem, setUpdatingItem] = useState(null);
   const [updateError, setUpdateError] = useState(null);
   const [fileName, setFileName] = useState('');
   const [updatedImage, setUpdatedImage] = useState(null);
+
+  const posicion = [19.32452, -99.17909];
+  const ZOOM_LEVEL = 9;
+  const mapRef = useRef();
 
   const handleSearch = async () => {
     if (!searchText.trim() || !filter) {
@@ -48,8 +51,11 @@ function PaginaInicio() {
         if (err.response.status === 404) setError(`No se encontraron incidencias para "${searchText}" con filtro "${filter}".`);
         else if (err.response.status === 401) setError('No autorizado para realizar esta búsqueda.');
         else setError(`Error del servidor: ${err.response.status}. Intenta de nuevo.`);
-      } else if (err.request) setError('No se pudo conectar con el servidor. Verifica tu conexión.');
-      else setError(`Ocurrió un error: ${err.message || 'Error desconocido'}.`);
+      } else if (err.request) {
+        setError('No se pudo conectar con el servidor. Verifica tu conexión.');
+      } else {
+        setError(`Ocurrió un error: ${err.message || 'Error desconocido'}.`);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -110,78 +116,94 @@ function PaginaInicio() {
   return (
     <div>
       <NavBar />
-      <div className="container" style={{ marginTop: '2rem' }}>
-        <div className="search-controls-container">
-          <input className="search-input" type="text" value={searchText} placeholder="Buscar por..." onChange={e => setSearchText(e.target.value)} />
-          <div className="filter-group">
-            <label htmlFor="filtro" className="filter-label">Filtrar por</label>
-            <select id="filtro" className="filter-select" value={filter} onChange={e => setFilter(e.target.value)}>
-              <option value="" disabled>Selecciona...</option>
-              <option value="titulo">Título</option>
-              <option value="municipio">Municipio</option>
-              <option value="categoria">Categoría</option>
-              <option value="estado">Estado</option>
-            </select>
+      <div className="pagina-inicio-container">
+        <div className="left-panel">
+          <div className="search-controls-container">
+            <input className="search-input" type="text" value={searchText} placeholder="Buscar por..." onChange={e => setSearchText(e.target.value)} />
+            <div className="filter-group">
+              <label htmlFor="filtro" className="filter-label">Filtrar por</label>
+              <select id="filtro" className="filter-select" value={filter} onChange={e => setFilter(e.target.value)}>
+                <option value="" disabled>Selecciona...</option>
+                <option value="titulo">Título</option>
+                <option value="municipio">Municipio</option>
+                <option value="categoria">Categoría</option>
+                <option value="estado">Estado</option>
+              </select>
+            </div>
+            <button className="search-button" onClick={handleSearch} disabled={isLoading}>{isLoading ? 'Buscando...' : 'Buscar'}</button>
           </div>
-          <button className="search-button" onClick={handleSearch} disabled={isLoading}>{isLoading ? 'Buscando...' : 'Buscar'}</button>
+
+          <div className="results-container">
+            <h2>Resultados de la Búsqueda</h2>
+            {isLoading && <p>Buscando incidencias...</p>}
+            {error && <p style={{ color: 'red' }}><strong>Error:</strong> {error}</p>}
+            {!isLoading && !error && searchPerformed && searchResults.length === 0 && <p>No se encontraron incidencias que coincidan con tu búsqueda.</p>}
+
+            {!isLoading && !error && searchResults.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                {searchResults.map(incidencia => {
+                  const id = incidencia.id_incidente || incidencia.titulo;
+                  const isExpanded = expandedItems[id];
+                  return (
+                    <div key={id} style={{ border: '1px solid #ccc', padding: '1rem', borderRadius: '5px', background: '#fff' }}>
+                      <h3>{incidencia.titulo}</h3>
+                      <p><strong>Categoría:</strong> {incidencia.categoria}</p>
+                      <button onClick={() => toggleExpand(id)} style={{ marginBottom: '1rem' }}>{isExpanded ? 'Ver menos ▲' : 'Ver más ▼'}</button>
+
+                      {isExpanded && (
+                        <div style={{ borderTop: '1px solid #eee', paddingTop: '1rem' }}>
+                          <p><strong>Descripción:</strong> {incidencia.descripcion}</p>
+                          <p><strong>Estado:</strong> {incidencia.estado}</p>
+                          <p><strong>Ubicación General:</strong> {incidencia.ubicacion}</p>
+                          <p><strong>Estado (Ubicación):</strong> {incidencia.estado_ubicacion}</p>
+                          <p><strong>Municipio:</strong> {incidencia.municipio}</p>
+                          <p><strong>Colonia:</strong> {incidencia.colonia}</p>
+                          <p><strong>Calle:</strong> {incidencia.calle}</p>
+                          {incidencia.imagen ? (
+                            <div className="image-preview" style={{ marginTop: '1rem' }}>
+                              <h4>Imagen Adjunta:</h4>
+                              <img src={`data:image/jpeg;base64,${incidencia.imagen}`} alt={`Imagen de la incidencia: ${incidencia.titulo}`} style={{ maxWidth: '100%', maxHeight: '300px', height: 'auto', display: 'block', marginTop: '0.5rem', border: '1px solid #ddd', borderRadius: '4px' }} />
+                            </div>
+                          ) : <p><em>No hay imagen adjunta.</em></p>}
+
+                          <button onClick={() => handleStartUpdate(incidencia)} style={{ marginTop: '1rem' }}>Actualizar Incidente</button>
+                          {updateError && updatingItem === id && <p style={{ color: 'red' }}>{updateError}</p>}
+
+                          {updatingItem === id && !updateError && (
+                            <div style={{ marginTop: '1rem', borderTop: '1px dashed #ccc', paddingTop: '1rem' }}>
+                              <h4>Actualizar Imagen</h4>
+                              <input type="file" accept="image/*" onChange={e => processImageFile(e.target.files[0])} />
+                              {fileName && <p>Archivo seleccionado: {fileName}</p>}
+                              <div style={{ marginTop: '0.5rem' }}>
+                                <button onClick={() => handleUpdateSubmit(id)}>Confirmar Actualización</button>
+                                <button onClick={() => { setUpdatingItem(null); setUpdateError(null); setUpdatedImage(null); setFileName(''); }} style={{ marginLeft: '1rem' }}>Cancelar</button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {!isLoading && !error && !searchPerformed && <p>Ingresa un término de búsqueda y selecciona un filtro para comenzar.</p>}
+          </div>
         </div>
 
-        <div className="results-container" style={{ marginTop: '2rem', padding: '1rem', border: '1px solid #eee', borderRadius: '8px', background: '#f9f9f9' }}>
-          <h2>Resultados de la Búsqueda</h2>
-          {isLoading && <p>Buscando incidencias...</p>}
-          {error && <p style={{ color: 'red' }}><strong>Error:</strong> {error}</p>}
-          {!isLoading && !error && searchPerformed && searchResults.length === 0 && <p>No se encontraron incidencias que coincidan con tu búsqueda.</p>}
-
-          {!isLoading && !error && searchResults.length > 0 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-              {searchResults.map(incidencia => {
-                const id = incidencia.id_incidente || incidencia.titulo;
-                const isExpanded = expandedItems[id];
-                return (
-                  <div key={id} style={{ border: '1px solid #ccc', padding: '1rem', borderRadius: '5px', background: '#fff' }}>
-                    <h3>{incidencia.titulo}</h3>
-                    <p><strong>Categoría:</strong> {incidencia.categoria}</p>
-                    <button onClick={() => toggleExpand(id)} style={{ marginBottom: '1rem' }}>{isExpanded ? 'Ver menos ▲' : 'Ver más ▼'}</button>
-
-                    {isExpanded && (
-                      <div style={{ borderTop: '1px solid #eee', paddingTop: '1rem' }}>
-                        <p><strong>Descripción:</strong> {incidencia.descripcion}</p>
-                        <p><strong>Estado:</strong> {incidencia.estado}</p>
-                        <p><strong>Ubicación General:</strong> {incidencia.ubicacion}</p>
-                        <p><strong>Estado (Ubicación):</strong> {incidencia.estado_ubicacion}</p>
-                        <p><strong>Municipio:</strong> {incidencia.municipio}</p>
-                        <p><strong>Colonia:</strong> {incidencia.colonia}</p>
-                        <p><strong>Calle:</strong> {incidencia.calle}</p>
-                        {incidencia.imagen ? (
-                          <div className="image-preview" style={{ marginTop: '1rem' }}>
-                            <h4>Imagen Adjunta:</h4>
-                            <img src={`data:image/jpeg;base64,${incidencia.imagen}`} alt={`Imagen de la incidencia: ${incidencia.titulo}`} style={{ maxWidth: '100%', maxHeight: '300px', height: 'auto', display: 'block', marginTop: '0.5rem', border: '1px solid #ddd', borderRadius: '4px' }} />
-                          </div>
-                        ) : <p><em>No hay imagen adjunta.</em></p>}
-
-                        <button onClick={() => handleStartUpdate(incidencia)} style={{ marginTop: '1rem' }}>Actualizar Incidente</button>
-                        {updateError && updatingItem === id && <p style={{ color: 'red' }}>{updateError}</p>}
-
-                        {updatingItem === id && !updateError && (
-                          <div style={{ marginTop: '1rem', borderTop: '1px dashed #ccc', paddingTop: '1rem' }}>
-                            <h4>Actualizar Imagen</h4>
-                            <input type="file" accept="image/*" onChange={e => processImageFile(e.target.files[0])} />
-                            {fileName && <p>Archivo seleccionado: {fileName}</p>}
-                            <div style={{ marginTop: '0.5rem' }}>
-                              <button onClick={() => handleUpdateSubmit(id)}>Confirmar Actualización</button>
-                              <button onClick={() => { setUpdatingItem(null); setUpdateError(null); setUpdatedImage(null); setFileName(''); }} style={{ marginLeft: '1rem' }}>Cancelar</button>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {!isLoading && !error && !searchPerformed && <p>Ingresa un término de búsqueda y selecciona un filtro para comenzar.</p>}
+        <div className="right-panel">
+          <MapContainer center={posicion} zoom={13} scrollWheelZoom={false} className="map">
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            <Marker position={posicion}>
+              <Popup>
+                Ubicación de Incidencias
+              </Popup>
+            </Marker>
+          </MapContainer>
         </div>
       </div>
     </div>

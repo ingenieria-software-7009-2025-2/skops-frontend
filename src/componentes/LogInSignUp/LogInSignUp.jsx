@@ -3,6 +3,7 @@ import './LogInSignUp.css';
 import user_icon from '../assets/person.png';
 import email_icon from '../assets/email.png';
 import password_icon from '../assets/password.png';
+import municipio_icon from '../assets/municipio.png';
 import api from '../../api';
 import axios from 'axios';
 
