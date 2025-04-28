@@ -20,6 +20,9 @@ rm -rf node_modules package-lock.json
 npm install
 ```
 ```
+npm install react-leaflet leaflet
+```
+```
 npm start
 ```
 
@@ -48,9 +51,12 @@ rm -rf node_modules package-lock.json
 npm install
 ```
 ```
+npm install react-leaflet leaflet
+```
+```
 npm start
 ```
 
 ### Link del tablero de Notion:
 
-https://www.notion.so/2650d68c9118486b8e4ed6c7fb34973c?v=1b1189e86b31805399c3000cbc8a9656
+https://www.notion.so/1b9189e86b3180d48277da33663f3dce?v=1b9189e86b318074b748000c57906171

@@ -13,7 +13,7 @@
 }
 
 .logo {
-    color: #741eec;
+    color: #185335;
     font-size: 20px;
 }
 
@@ -78,4 +78,15 @@
     padding: 0;
     cursor: pointer;
     font-size: 16px;
+}
+
+.logout-button {
+  background: #4c00b4;
+  color: white;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 25px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.3s;
 }
