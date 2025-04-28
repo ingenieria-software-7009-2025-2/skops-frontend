@@ -1,7 +1,18 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { MapContainer, TileLayer, Marker} from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
 import NavBar from '../NavBar/NavBar';
-import './PaginaInicio.css'; 
-import api from '../../api'; 
+import './PaginaInicio.css';
+import api from '../../api';
+
+
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
+  iconUrl: require('leaflet/dist/images/marker-icon.png'),
+  shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
+});
 
 function PaginaInicio() {
   const [searchText, setSearchText] = useState('');
@@ -12,11 +23,13 @@ function PaginaInicio() {
   const [searchPerformed, setSearchPerformed] = useState(false);
   const [expandedItems, setExpandedItems] = useState({});
 
-  // Estados para actualización
   const [updatingItem, setUpdatingItem] = useState(null);
   const [updateError, setUpdateError] = useState(null);
   const [fileName, setFileName] = useState('');
   const [updatedImage, setUpdatedImage] = useState(null);
+
+  const mapRef = useRef(null);
+  const ZOOM_LEVEL = 13;
 
   const handleSearch = async () => {
     if (!searchText.trim() || !filter) {
@@ -107,12 +120,26 @@ function PaginaInicio() {
     }
   };
 
+  useEffect(() => {
+    Object.keys(expandedItems).forEach(id => {
+      if (expandedItems[id] && mapRef.current) {
+        setTimeout(() => {
+          mapRef.current.invalidateSize();
+        }, 200);
+      }
+    });
+  }, [expandedItems]);
+
   return (
     <div>
       <NavBar />
       <div className="container" style={{ marginTop: '2rem' }}>
         <div className="search-controls-container">
-          <input className="search-input" type="text" value={searchText} placeholder="Buscar por..." onChange={e => setSearchText(e.target.value)} />
+          <input
+            className="search-input" type="text"
+            value={searchText} placeholder="Buscar por..."
+            onChange={e => setSearchText(e.target.value)}
+          />
           <div className="filter-group">
             <label htmlFor="filtro" className="filter-label">Filtrar por</label>
             <select id="filtro" className="filter-select" value={filter} onChange={e => setFilter(e.target.value)}>
@@ -123,7 +150,9 @@ function PaginaInicio() {
               <option value="estado">Estado</option>
             </select>
           </div>
-          <button className="search-button" onClick={handleSearch} disabled={isLoading}>{isLoading ? 'Buscando...' : 'Buscar'}</button>
+          <button className="search-button" onClick={handleSearch} disabled={isLoading}>
+            {isLoading ? 'Buscando...' : 'Buscar'}
+          </button>
         </div>
 
         <div className="results-container" style={{ marginTop: '2rem', padding: '1rem', border: '1px solid #eee', borderRadius: '8px', background: '#f9f9f9' }}>
@@ -137,11 +166,17 @@ function PaginaInicio() {
               {searchResults.map(incidencia => {
                 const id = incidencia.id_incidente || incidencia.titulo;
                 const isExpanded = expandedItems[id];
+                const posicion = incidencia.ubicacion
+                  ? incidencia.ubicacion.split(',').map(coord => parseFloat(coord.trim()))
+                  : null;
+
                 return (
                   <div key={id} style={{ border: '1px solid #ccc', padding: '1rem', borderRadius: '5px', background: '#fff' }}>
                     <h3>{incidencia.titulo}</h3>
                     <p><strong>Categoría:</strong> {incidencia.categoria}</p>
-                    <button onClick={() => toggleExpand(id)} style={{ marginBottom: '1rem' }}>{isExpanded ? 'Ver menos ▲' : 'Ver más ▼'}</button>
+                    <button onClick={() => toggleExpand(id)} style={{ marginBottom: '1rem' }}>
+                      {isExpanded ? 'Ver menos ▲' : 'Ver más ▼'}
+                    </button>
 
                     {isExpanded && (
                       <div style={{ borderTop: '1px solid #eee', paddingTop: '1rem' }}>
@@ -152,14 +187,40 @@ function PaginaInicio() {
                         <p><strong>Municipio:</strong> {incidencia.municipio}</p>
                         <p><strong>Colonia:</strong> {incidencia.colonia}</p>
                         <p><strong>Calle:</strong> {incidencia.calle}</p>
+
                         {incidencia.imagen ? (
                           <div className="image-preview" style={{ marginTop: '1rem' }}>
                             <h4>Imagen Adjunta:</h4>
-                            <img src={`data:image/jpeg;base64,${incidencia.imagen}`} alt={`Imagen de la incidencia: ${incidencia.titulo}`} style={{ maxWidth: '100%', maxHeight: '300px', height: 'auto', display: 'block', marginTop: '0.5rem', border: '1px solid #ddd', borderRadius: '4px' }} />
+                            <img
+                              src={`data:image/jpeg;base64,${incidencia.imagen}`} alt={`Imagen de la incidencia: ${incidencia.titulo}`} 
+                              style={{ maxWidth: '100%', maxHeight: '200px', display: 'block', marginTop: '0.5rem', border: '1px solid #ddd', borderRadius: '4px' }}
+                            />
                           </div>
                         ) : <p><em>No hay imagen adjunta.</em></p>}
 
-                        <button onClick={() => handleStartUpdate(incidencia)} style={{ marginTop: '1rem' }}>Actualizar Incidente</button>
+                        <div style={{ width: '100%', maxWidth: '400px', height: '250px', margin: '1rem auto', border: '1px solid #ccc', borderRadius: '5px', overflow: 'hidden' }}>
+                          {posicion ? (
+                            <MapContainer
+                              center={posicion}
+                              zoom={ZOOM_LEVEL}
+                              style={{ width: '100%', height: '100%' }}
+                              whenCreated={map => { mapRef.current = map; setTimeout(() => map.invalidateSize(), 200); }}
+                              scrollWheelZoom={false}
+                            >
+                              <TileLayer
+                                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                              />
+                              <Marker position={posicion} />
+                            </MapContainer>
+                          ) : (
+                            <p style={{ textAlign: 'center', paddingTop: '1rem' }}><em>No hay ubicación disponible para mostrar el mapa.</em></p>
+                          )}
+                        </div>
+
+                        <button onClick={() => handleStartUpdate(incidencia)} style={{ marginTop: '1rem' }}>
+                          Actualizar Incidente
+                        </button>
                         {updateError && updatingItem === id && <p style={{ color: 'red' }}>{updateError}</p>}
 
                         {updatingItem === id && !updateError && (
@@ -169,7 +230,9 @@ function PaginaInicio() {
                             {fileName && <p>Archivo seleccionado: {fileName}</p>}
                             <div style={{ marginTop: '0.5rem' }}>
                               <button onClick={() => handleUpdateSubmit(id)}>Confirmar Actualización</button>
-                              <button onClick={() => { setUpdatingItem(null); setUpdateError(null); setUpdatedImage(null); setFileName(''); }} style={{ marginLeft: '1rem' }}>Cancelar</button>
+                              <button onClick={() => { setUpdatingItem(null); setUpdateError(null); setUpdatedImage(null); setFileName(''); }} style={{ marginLeft: '1rem' }}>
+                                Cancelar
+                              </button>
                             </div>
                           </div>
                         )}
