@@ -20,6 +20,9 @@ rm -rf node_modules package-lock.json
 npm install
 ```
 ```
+npm install react-leaflet leaflet
+```
+```
 npm start
 ```
 
@@ -46,6 +49,9 @@ rm -rf node_modules package-lock.json
 ```
 ```
 npm install
+```
+```
+npm install react-leaflet leaflet
 ```
 ```
 npm start
