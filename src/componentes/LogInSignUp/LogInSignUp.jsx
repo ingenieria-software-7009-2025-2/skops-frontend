@@ -3,6 +3,7 @@ import './LogInSignUp.css';
 import user_icon from '../assets/person.png';
 import email_icon from '../assets/email.png';
 import password_icon from '../assets/password.png';
+import municipio_icon from '../assets/municipio.png';
 import api from '../../api';
 import axios from 'axios';
 
@@ -15,14 +16,12 @@ export const LogInSignUp = ({ setUsuario }) => {
   const [error, setError]     = useState("");
 
   const handleRegistro = async () => {
-    // Validación: no permitir espacios en blanco
     if (!nombre.trim() || !municipio.trim() || !email.trim() || !password.trim()) {
       setError("Todos los campos son necesarios");
       return;
     }
 
     try {
-      // Usamos axios directamente para no enviar el token
       const response = await axios.post(`${api.defaults.baseURL}/v1/users`, {
         username: nombre,
         municipio: municipio,
@@ -30,23 +29,19 @@ export const LogInSignUp = ({ setUsuario }) => {
         password: password
       });
 
-      // Si el servidor devuelve código 201 o 200, consideramos registro exitoso
       if (response.status === 201 || response.status === 200) {
-        // Limpiar campos
         setNombre("");
         setMunicipio("");
         setEmail("");
         setPassword("");
         setError("");
 
-        // Cambiar al modo login para que el usuario inicie sesión
         setAction("Iniciar sesión");
       } else {
         setError("Error en el proceso de registro");
       }
 
     } catch (err) {
-      // Capturamos error del servidor
       setError(err.response?.data?.message || "Error interno al registrar");
     }
   };
@@ -66,7 +61,6 @@ export const LogInSignUp = ({ setUsuario }) => {
       if (response.data.token) {
         localStorage.setItem('token', response.data.token);
         setUsuario([response.data.username]);
-        // Limpiar campos tras login exitoso
         setEmail("");
         setPassword("");
         setError("");
@@ -132,7 +126,7 @@ export const LogInSignUp = ({ setUsuario }) => {
               />
             </div>
             <div className="input">
-              <img src={user_icon} alt="municipio icon" />
+              <img src={municipio_icon} alt="municipio icon" />
               <input
                 type="text"
                 placeholder='Municipio'
